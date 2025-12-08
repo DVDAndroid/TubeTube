@@ -1,0 +1,168 @@
+Subject: [PATCH] dev
+---
+Index: tubetube/config/settings.yaml
+===================================================================
+diff --git a/tubetube/config/settings.yaml b/tubetube/config/settings.yaml
+new file mode 100644
+--- /dev/null	(date 1765225122826)
++++ b/tubetube/config/settings.yaml	(date 1765225122826)
+@@ -0,0 +1,20 @@
++General:
++  audio_ext: m4a
++  audio_format_id: '140'
++  video_ext: mp4
++  video_format_id: '625'
++Music:
++  audio_ext: mp3
++  audio_format_id: '140'
++Podcast:
++  audio_ext: m4a
++  audio_format_id: '140'
++Video:
++  audio_format_id: '140'
++  video_ext: mp4
++  video_format_id: '625'
++Temp:
++  audio_ext: mp3
++  audio_format_id: '140'
++  video_ext: mp4
++  video_format_id: '625'
+Index: compose.yaml
+===================================================================
+diff --git a/compose.yaml b/compose.yaml
+new file mode 100644
+--- /dev/null	(date 1765224447068)
++++ b/compose.yaml	(date 1765224447068)
+@@ -0,0 +1,19 @@
++services:
++  tubetube:
++    image: yt
++    container_name: tubetube
++    ports:
++      - "6543:6543"
++    volumes:
++      - ./data/general:/data/General
++      - ./data/music:/data/Music
++      - ./data/podcasts:/data/Podcast
++      - ./data/videos:/data/Video
++      - ./data/shared:/data/Shared
++      - ./data/Temp:/data/Temp
++      - ./config:/config
++      - /etc/localtime:/etc/localtime:ro
++      - /etc/timezone:/etc/timezone:ro
++    environment:
++      - PUID=1000
++      - PGID=1000
+Index: tubetube/yt_downloader.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/tubetube/yt_downloader.py b/tubetube/yt_downloader.py
+--- a/tubetube/yt_downloader.py	(revision 3f0139d907cc496c7e97832520ce864a947c40ee)
++++ b/tubetube/yt_downloader.py	(date 1765225122863)
+@@ -86,11 +86,12 @@
+             "cachedir": "/temp/cache",
+             "noprogress": True,
+             "no_warnings": True,
++            "ffmpeg_location":r"C:\Users\Davide\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-essentials_build\bin",
+         }
+         self.ydl_for_parsing = yt_dlp.YoutubeDL(parsing_opts)
+ 
+         self.temp_folder = "/temp"
+-        self.cleanup_temp_folder()
++        # self.cleanup_temp_folder()
+ 
+     def cleanup_temp_folder(self):
+         try:
+Index: tubetube/settings.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/tubetube/settings.py b/tubetube/settings.py
+--- a/tubetube/settings.py	(revision 3f0139d907cc496c7e97832520ce864a947c40ee)
++++ b/tubetube/settings.py	(date 1765225122849)
+@@ -20,7 +20,7 @@
+ 
+ class Settings:
+     def __init__(self):
+-        self.config_folder = "/config"
++        self.config_folder = "./config"
+         self.settings_file_path = os.path.join(self.config_folder, "settings.yaml")
+ 
+         self.folder_locations = self._load_settings()
+@@ -29,7 +29,7 @@
+         all_folders = set(self.audio_locations.keys()).union(set(self.video_locations.keys()))
+ 
+         for folder_name in all_folders:
+-            os.makedirs(os.path.join("/data", folder_name), exist_ok=True)
++            os.makedirs(os.path.join("./data", folder_name), exist_ok=True)
+ 
+         os.makedirs(self.config_folder, exist_ok=True)
+ 
+Index: Dockerfile
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Dockerfile b/Dockerfile
+--- a/Dockerfile	(revision 3f0139d907cc496c7e97832520ce864a947c40ee)
++++ b/Dockerfile	(date 1765225122882)
+@@ -1,4 +1,4 @@
+-FROM python:3.12-alpine
++FROM python:3.10-alpine
+ 
+ # Install dependencies, including su-exec
+ RUN apk update && apk add --no-cache ffmpeg su-exec deno
+@@ -16,18 +16,20 @@
+ # Set the working directory
+ WORKDIR /app
+ 
+-# Copy the application code
+-COPY . .
++COPY requirements.txt requirements.txt
+ 
+ # Install Python dependencies
+ RUN pip install --upgrade pip --root-user-action=ignore && \
+     pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
+-    
++
+ # Ensure proper ownership of /config, /data and /temp directories
+ RUN mkdir -p /config /data /temp && \
+     chown -R appuser:appgroup /config /data /temp && \
+     chmod -R 775 /temp
+ 
++# Copy the application code
++COPY . .
++
+ # Make script executable
+ RUN chmod +x /app/start.sh
+ 
+Index: config/settings.yaml
+===================================================================
+diff --git a/config/settings.yaml b/config/settings.yaml
+new file mode 100644
+--- /dev/null	(date 1765224643161)
++++ b/config/settings.yaml	(date 1765224643161)
+@@ -0,0 +1,20 @@
++General:
++  audio_ext: m4a
++  audio_format_id: '140'
++  video_ext: mp4
++  video_format_id: '625'
++Music:
++  audio_ext: mp3
++  audio_format_id: '140'
++Podcast:
++  audio_ext: m4a
++  audio_format_id: '140'
++Video:
++  audio_format_id: '140'
++  video_ext: mp4
++  video_format_id: '625'
++Temp:
++  audio_ext: mp3
++  audio_format_id: '140'
++  video_ext: mp4
++  video_format_id: '625'

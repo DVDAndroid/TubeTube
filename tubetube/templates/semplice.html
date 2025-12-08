@@ -24,7 +24,7 @@
     <h1 class="text-center">Scarica Youtube</h1>
   </header>
 
-  <section class="mb-4" >
+  <section class="mb-4">
     <div class="input-group mb-3">
       <input id="download-url" type="text" class="form-control" placeholder="Incolla link Youtube"
              aria-label="Download URL" aria-describedby="download-url">
@@ -50,40 +50,53 @@
     </div>
     <div id="downloadSection"></div>
   </section>
+
+  <!-- Activity Table -->
+  <section class="activity-table-section">
+    <table class="activity-table table table-striped table-hover fixed-layout">
+      <thead class="sticky-top top-0">
+      <tr>
+        <th scope="col" class="id-column">#</th>
+        <th scope="col" class="title-column">Nome</th>
+        <th scope="col" class="status-column">Stato</th>
+        <th scope="col" class="progress-column">Progresso</th>
+      </tr>
+      </thead>
+      <tbody id="activity-table-body">
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Row Template -->
+  <template id="row-template">
+    <tr>
+      <td class="id"></td>
+      <td class="title text-wrap"></td>
+      <td class="status text-wrap"></td>
+      <td class="download-progress text-wrap"></td>
+    </tr>
+  </template>
 </div>
+
+<!-- Toast Container -->
+<div aria-live="polite" aria-atomic="true" class="position-relative">
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <!-- Toast -->
+    <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+      <div class="toast-header">
+        <strong class="me-auto" id="toast-title">Toast</strong>
+        <small id="toast-time">Now</small>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body" id="toast-message">
+        Message.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js_general_script_semplice.js') }}"></script>
+<script src="{{ url_for('static', filename='js_table_script_semplice.js') }}"></script>
 </body>
-<script>
-  const socket = io();
-  const downloadButton = document.getElementById('download-button');
-  const mainSection = document.getElementById('downloadSection');
-  const urlInput = document.getElementById('download-url');
-  socket.on('update_download_item', ({item}) => {
-    if (item.progress !== "Downloaded") return
-    downloadButton.disabled = false;
 
-    const downloadLink = document.createElement('a');
-    downloadLink.href = "/download/Temp/" + item.title + "." + (item.audio_only ? item.download_settings.audio_ext : item.download_settings.video_ext);
-    downloadLink.download = item.title + "." + (item.audio_only ? item.download_settings.audio_ext : item.download_settings.video_ext);
-    downloadLink.className = "btn btn-success mt-3";
-    downloadLink.innerText = item.title;
-    mainSection.appendChild(downloadLink);
-  })
-
-  function initiateDownload() {
-    const url = urlInput;
-
-    if (!url.value.trim()) {
-      alert('Link vuoto');
-      return;
-    }
-
-    const folderName = "Temp";
-    const checkedRadio = document.querySelector('input[name="mediaType"]:checked');
-    const audioOnly = checkedRadio.value === 'audio';
-    socket.emit('download', {url: url.value, folder_name: folderName, audio_only: audioOnly});
-    downloadButton.disabled = true;
-  }
-
-  downloadButton.addEventListener('click', initiateDownload);
-</script>
 </html>
