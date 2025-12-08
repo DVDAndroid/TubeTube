@@ -1,6 +1,6 @@
 import logging
 import threading
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 from settings import Settings, Config
 from yt_downloader import DownloadManager
@@ -20,6 +20,18 @@ class WebApp(Settings, DownloadManager):
         @self.app.route("/")
         def handle_index():
             return render_template("index.html")
+
+        @self.app.route("/semplice")
+        def handle_semplice():
+            return render_template("semplice.html")
+
+        @self.app.route("/download/<path:filename>")
+        def handle_downloads(filename):
+            return send_from_directory(
+                r"/data",
+                filename,
+                as_attachment=True
+            )
 
         @self.socketio.on("connect")
         def handle_connect():
