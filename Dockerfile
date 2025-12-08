@@ -1,4 +1,4 @@
-FROM python:3.12-alpine
+FROM python:3.10-alpine
 
 # Install dependencies, including su-exec
 RUN apk update && apk add --no-cache ffmpeg su-exec deno
@@ -17,7 +17,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Copy the application code
-COPY . .
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip --root-user-action=ignore && \
@@ -27,6 +27,8 @@ RUN pip install --upgrade pip --root-user-action=ignore && \
 RUN mkdir -p /config /data /temp && \
     chown -R appuser:appgroup /config /data /temp && \
     chmod -R 775 /temp
+
+COPY . .
 
 # Make script executable
 RUN chmod +x /app/start.sh
