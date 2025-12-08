@@ -26,7 +26,7 @@ function download_button(item, row) {
         downloadLink.download = item.title + "." + (item.audio_only ? item.download_settings.audio_ext : item.download_settings.video_ext);
         downloadLink.className = "btn btn-success mt-3";
         downloadLink.innerText = "Scarica";
-        row.querySelector('.download-progress').replaceChild(downloadLink);
+        row.querySelector('.download-progress').appendChild(downloadLink);
     } else {
         row.querySelector('.download-progress').textContent = item.progress;
     }
