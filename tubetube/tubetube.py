@@ -1,6 +1,7 @@
 import logging
+import os
 import threading
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, send_file
 from flask_socketio import SocketIO
 from settings import Settings, Config
 from yt_downloader import DownloadManager
@@ -27,10 +28,21 @@ class WebApp(Settings, DownloadManager):
 
         @self.app.route("/download/<path:filename>")
         def handle_downloads(filename):
-            return send_from_directory(
-                r"/data",
-                filename,
-                as_attachment=True
+            norm = os.path.normpath(filename)
+            full_path = os.path.join("/data", norm)
+
+            base = os.path.basename(full_path)
+            stem, ext = os.path.splitext(base)
+
+            title_path = os.path.join(os.path.dirname(full_path), f"{stem}.title")
+
+            with open(title_path, "r", encoding="utf-8") as f:
+                final_name = f.read().strip() + ext
+
+            return send_file(
+                full_path,
+                as_attachment=True,
+                download_name=final_name
             )
 
         @self.socketio.on("connect")

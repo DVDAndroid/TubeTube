@@ -206,12 +206,13 @@ class DownloadManager:
             download_format = f"{video_format_id}+{audio_format_id}/bestvideo+bestaudio/best"
 
         item_title = re.sub(r'[<>:"/\\|?*]', "-", item.get("title"))
+        item_title = re.sub(r'-{2,}', "-", item_title).strip("- ")
         final_path = f"/data/{folder_name}"
 
         ydl_opts = {
             "ignore_no_formats_error": True,
             "noplaylist": True,
-            "outtmpl": f"{item_title}.%(ext)s",
+            "outtmpl": f"%(id)s.%(ext)s",
             "progress_hooks": [lambda d: self._progress_hook(d, download_id)],
             "ffmpeg_location": self.ffmpeg_location,
             "writethumbnail": True,
@@ -261,6 +262,15 @@ class DownloadManager:
             result = ydl.download([item["url"]])
             item["progress"] = "Done" if result == 0 else "Incomplete"
             item["status"] = "Complete"
+
+            def extract_id(url):
+                p = r"(?:v=|youtu\.be/|embed/)([A-Za-z0-9_-]{11})"
+                m = re.search(p, url)
+                return m.group(1) if m else ""
+            video_id = extract_id(item["url"])
+            with open(f"{final_path}/{video_id}.title", "w") as f:
+                f.write(item_title)
+
             logging.info(f'Finished {threading.current_thread().name} Download: {item.get("title")}')
 
         except DownloadCancelledException:
