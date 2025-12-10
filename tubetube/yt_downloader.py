@@ -113,7 +113,7 @@ class DownloadManager:
 
         with self.lock:
             parsed_identifier = helpers.parse_video_id(url)
-            if any(item["url"] == url or item["video_identifier"] == parsed_identifier for item in self.all_items.values()):
+            if any((item["url"] == url or item["video_identifier"] == parsed_identifier) and item["audio_only"] == item_info.get("audio_only") for item in self.all_items.values()):
                 logging.info(f"URL {url} is already in the queue or being downloaded.")
                 self.socketio.emit("toast", {"title": "Duplicate URL", "body": f"The video '{url}' is already in the queue or being processed."})
                 return
@@ -209,10 +209,14 @@ class DownloadManager:
         item_title = re.sub(r'-{2,}', "-", item_title).strip("- ")
         final_path = f"/data/{folder_name}"
 
+        if item.get("audio_only"):
+            namefile_end = "_audio"
+        else:
+            namefile_end = "_video"
         ydl_opts = {
             "ignore_no_formats_error": True,
             "noplaylist": True,
-            "outtmpl": f"%(id)s.%(ext)s",
+            "outtmpl": f"%(id)s_{namefile_end}",
             "progress_hooks": [lambda d: self._progress_hook(d, download_id)],
             "ffmpeg_location": self.ffmpeg_location,
             "writethumbnail": True,
@@ -263,11 +267,7 @@ class DownloadManager:
             item["progress"] = "Done" if result == 0 else "Incomplete"
             item["status"] = "Complete"
 
-            def extract_id(url):
-                p = r"(?:v=|youtu\.be/|embed/)([A-Za-z0-9_-]{11})"
-                m = re.search(p, url)
-                return m.group(1) if m else ""
-            video_id = extract_id(item["url"])
+            video_id = item.get("video_identifier")
             with open(f"{final_path}/{video_id}.title", "w") as f:
                 f.write(item_title)
 

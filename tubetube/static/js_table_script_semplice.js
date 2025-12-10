@@ -22,8 +22,7 @@ socket.on('update_download_list', (items) => {
 function download_button(item, row) {
     if (item.progress === "Done") {
         const downloadLink = document.createElement('a');
-        downloadLink.href = "/download/Temp/" + item.video_identifier + "." + (item.audio_only ? item.download_settings.audio_ext : item.download_settings.video_ext);
-        downloadLink.download = item.title + "." + (item.audio_only ? item.download_settings.audio_ext : item.download_settings.video_ext);
+        downloadLink.href = "/download/Temp/" + item.video_identifier + "." + (item.audio_only ? '_audio' : '_video');
         downloadLink.className = "btn btn-success mt-3";
         downloadLink.innerText = "Scarica";
         row.querySelector('.download-progress').appendChild(downloadLink);
