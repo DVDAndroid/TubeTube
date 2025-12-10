@@ -201,7 +201,7 @@ class DownloadManager:
         audio_format_id = download_settings.get("audio_format_id", {})
 
         if item.get("audio_only"):
-            download_format = f"{audio_format_id}/bestaudio/best"
+            download_format = f"{audio_format_id}/bestaudio/best" 
         else:
             download_format = f"{video_format_id}+{audio_format_id}/bestvideo+bestaudio/best"
 
@@ -217,7 +217,6 @@ class DownloadManager:
             "ffmpeg_location": self.ffmpeg_location,
             "writethumbnail": True,
             "quiet": not self.verbose_ytdlp,
-            "extract_flat": True,
             "format": download_format,
             "updatetime": False,
             "live_from_start": True,
@@ -226,6 +225,7 @@ class DownloadManager:
             "no_overwrites": True,
             "verbose": self.verbose_ytdlp,
             "no_mtime": True,
+            "format": download_format,
             "format_sort": [f"lang:{self.preferred_language}", f"acodec:{self.preferred_audio_codec}", "quality", "size", f"vcodec:{self.preferred_video_codec}", f"vext:{self.preferred_video_ext}"],
         }
 
@@ -237,6 +237,10 @@ class DownloadManager:
         if item.get("audio_only"):
             audio_ext = download_settings.get("audio_ext", "m4a")
             post_processors.extend([{"key": "FFmpegExtractAudio", "preferredcodec": audio_ext, "preferredquality": "0"}])
+        else:
+            ydl_opts["merge_output_format"] = "mp4"
+            video_ext = download_settings.get("video_ext", "mp4")
+            post_processors.append({"key": "FFmpegVideoRemuxer", "preferedformat": video_ext})
 
         post_processors.append({"key": "FFmpegThumbnailsConvertor", "format": "png", "when": "before_dl"})
         post_processors.append({"key": "EmbedThumbnail"})
@@ -245,6 +249,7 @@ class DownloadManager:
         if not item.get("audio_only"):
             ydl_opts["merge_output_format"] = "mp4"
 
+            ydl_opts["recode_video"] = "mp4"
         if self.cookies_file:
             ydl_opts["cookiefile"] = self.cookies_file
 
@@ -264,7 +269,10 @@ class DownloadManager:
             item["status"] = "Complete"
 
             video_id = item.get("video_identifier")
-            ext = download_settings.get("video_ext", "mp4") if not item.get("audio_only") else download_settings.get("audio_ext", "m4a")
+            if item.get("audio_only"):
+                ext = download_settings.get("audio_ext", "m4a")
+            else:
+                ext = ydl_opts.get("merge_output_format", download_settings.get("video_ext", "mp4")) 
             with open(f"{final_path}/{video_id}.{ext}.title", "w") as f:
                 f.write(item_title)
 
