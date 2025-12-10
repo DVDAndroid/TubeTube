@@ -97,6 +97,16 @@
 
 <script src="{{ url_for('static', filename='js_general_script_semplice.js') }}"></script>
 <script src="{{ url_for('static', filename='js_table_script_semplice.js') }}"></script>
+<script>
+  const u = new URL(window.location.href)
+  if (u.searchParams.has("id")) {
+    let id = u.searchParams.get("id")
+    u.search = ""
+    history.replaceState(null, "", u.toString())
+    document.getElementById("download-url").value = id ? `https://www.youtube.com/watch?v=${id}` : "";
+  }
+</script>
+
 </body>
 
 </html>

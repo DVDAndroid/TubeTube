@@ -34,7 +34,7 @@ class WebApp(Settings, DownloadManager):
             base = os.path.basename(full_path)
             stem, ext = os.path.splitext(base)
 
-            title_path = os.path.join(os.path.dirname(full_path), f"{stem}.title")
+            title_path = os.path.join(os.path.dirname(full_path), f"{stem}.{ext}.title")
 
             with open(title_path, "r", encoding="utf-8") as f:
                 final_name = f.read().strip() + ext

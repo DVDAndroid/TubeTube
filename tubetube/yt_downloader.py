@@ -209,14 +209,10 @@ class DownloadManager:
         item_title = re.sub(r'-{2,}', "-", item_title).strip("- ")
         final_path = f"/data/{folder_name}"
 
-        if item.get("audio_only"):
-            namefile_end = "_audio"
-        else:
-            namefile_end = "_video"
         ydl_opts = {
             "ignore_no_formats_error": True,
             "noplaylist": True,
-            "outtmpl": f"%(id)s_{namefile_end}",
+            "outtmpl": f"%(id)s.%(ext)s",
             "progress_hooks": [lambda d: self._progress_hook(d, download_id)],
             "ffmpeg_location": self.ffmpeg_location,
             "writethumbnail": True,
@@ -268,7 +264,8 @@ class DownloadManager:
             item["status"] = "Complete"
 
             video_id = item.get("video_identifier")
-            with open(f"{final_path}/{video_id}.title", "w") as f:
+            ext = download_settings.get("video_ext", "mp4") if not item.get("audio_only") else download_settings.get("audio_ext", "m4a")
+            with open(f"{final_path}/{video_id}.{ext}.title", "w") as f:
                 f.write(item_title)
 
             logging.info(f'Finished {threading.current_thread().name} Download: {item.get("title")}')
