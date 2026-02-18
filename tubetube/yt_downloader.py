@@ -200,14 +200,17 @@ class DownloadManager:
         video_format_id = download_settings.get("video_format_id", {})
         audio_format_id = download_settings.get("audio_format_id", {})
 
-        if item.get("audio_only"):
-            download_format = f"{audio_format_id}/bestaudio/best" 
-        else:
-            download_format = f"{video_format_id}+{audio_format_id}/bestvideo+bestaudio/best"
-
         item_title = re.sub(r'[<>:"/\\|?*]', "-", item.get("title"))
         item_title = re.sub(r'-{2,}', "-", item_title).strip("- ")
         final_path = f"/data/{folder_name}"
+
+        if item.get("audio_only"):
+            download_format = f"{audio_format_id}/bestaudio/best"
+        else:
+            if folder_name == "Temp":
+                download_format = "bv*[height<=1080]+ba/b[height<=1080]"
+            else:
+                download_format = f"{video_format_id}+{audio_format_id}/bestvideo+bestaudio/best"
 
         ydl_opts = {
             "ignore_no_formats_error": True,
@@ -225,7 +228,6 @@ class DownloadManager:
             "no_overwrites": True,
             "verbose": self.verbose_ytdlp,
             "no_mtime": True,
-            "format": download_format,
             "format_sort": [f"lang:{self.preferred_language}", f"acodec:{self.preferred_audio_codec}", "quality", "size", f"vcodec:{self.preferred_video_codec}", f"vext:{self.preferred_video_ext}"],
         }
 
@@ -272,7 +274,7 @@ class DownloadManager:
             if item.get("audio_only"):
                 ext = download_settings.get("audio_ext", "m4a")
             else:
-                ext = ydl_opts.get("merge_output_format", download_settings.get("video_ext", "mp4")) 
+                ext = ydl_opts.get("merge_output_format", download_settings.get("video_ext", "mp4"))
             with open(f"{final_path}/{video_id}.{ext}.title", "w") as f:
                 f.write(item_title)
 
